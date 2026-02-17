@@ -1,7 +1,7 @@
-python analyze_video.py --webcam --webcam-duration 0 --sample-rate 1 --max-faces 1 --device -1 --debug
+### python analyze_video.py --webcam --webcam-duration 0 --sample-rate 1 --max-faces 1 --device -1 --debug
 
 CUDA
-python analyze_video.py --webcam --webcam-duration 0 --sample-rate 1 --max-faces 1 --device 0 --debug
+### python analyze_video.py --webcam --webcam-duration 0 --sample-rate 1 --max-faces 1 --device 0 --debug
 
 
 
