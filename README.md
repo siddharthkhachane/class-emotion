@@ -1,3 +1,10 @@
+python analyze_video.py --webcam --webcam-duration 0 --sample-rate 1 --max-faces 1 --device -1 --debug
+
+CUDA
+python analyze_video.py --webcam --webcam-duration 0 --sample-rate 1 --max-faces 1 --device 0 --debug
+
+
+
 # Classroom Video Emotion MVP
 
 Tiny CLI MVP that analyzes a recorded classroom video (`.mp4`) or webcam feed by sampling frames, detecting faces with OpenCV Haar cascade, classifying face crops locally with a Hugging Face Transformers model (`nihar245/Expression-Detection-BEIT-Large`), and producing a simple teaching recommendation from aggregated classroom states.
