@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Classroom Emotion Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="panel">
+      <h1>Classroom Emotion Monitor</h1>
+      <p class="sub">Local browser demo using webcam + Hugging Face Inference API</p>
+
+      <div class="controls">
+        <label for="token">HF Token</label>
+        <input id="token" type="password" placeholder="hf_..." />
+
+        <label for="interval">Sample interval (seconds)</label>
+        <input id="interval" type="number" min="0.5" step="0.5" value="1" />
+
+        <div class="btns">
+          <button id="startBtn">Start Webcam</button>
+          <button id="stopBtn" disabled>Stop</button>
+        </div>
+      </div>
+
+      <p id="status" class="status">Idle</p>
+      <div class="results">
+        <div><span>Emotion</span><strong id="emotion">-</strong></div>
+        <div><span>State</span><strong id="state">-</strong></div>
+        <div><span>Recommendation</span><strong id="recommendation">-</strong></div>
+      </div>
+
+      <div class="distribution">
+        <h2>State Distribution</h2>
+        <ul id="distributionList">
+          <li>engaged: 0%</li>
+          <li>bored: 0%</li>
+          <li>confused: 0%</li>
+          <li>frustrated: 0%</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="videoWrap">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="canvas" hidden></canvas>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
