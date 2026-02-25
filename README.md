@@ -1,5 +1,5 @@
 for analyzing a video
-python analyze_video.py --video "path" --sample-rate 1 --max-faces 1 --device -1
+### python analyze_video.py --video "path" --sample-rate 1 --max-faces 1 --device -1
 
 
 ### python analyze_video.py --webcam --webcam-duration 0 --sample-rate 1 --max-faces 1 --device -1 --debug
