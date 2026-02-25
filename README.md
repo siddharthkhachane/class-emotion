@@ -1,3 +1,4 @@
+for analyzing a video
 python analyze_video.py --video "path" --sample-rate 1 --max-faces 1 --device -1
 
 
