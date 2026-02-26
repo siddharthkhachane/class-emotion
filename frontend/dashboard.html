@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affective Classroom Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root { 
+            --bg-body: #f3f4f6; 
+            --bg-panel: #ffffff; 
+            --text-main: #1f2937; 
+            --text-muted: #6b7280; 
+            --primary: #4f46e5; 
+            --primary-hover: #4338ca;
+            --teacher-highlight: #ec4899;
+            --alert-bg: #fffbeb;
+            --alert-border: #f59e0b;
+            --alert-text: #b45309;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            margin: 0; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden;
+        }
+
+        /* ====== SIDEBAR ====== */
+        .sidebar { 
+            width: 320px; 
+            background: var(--bg-panel); 
+            border-right: 1px solid #e5e7eb;
+            display: flex; 
+            flex-direction: column; 
+            padding: 24px;
+            box-sizing: border-box;
+            z-index: 10;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.02);
+        }
+        
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .brand-icon {
+            background: var(--primary);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .brand h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #111827; }
+
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            border-radius: 8px; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 0.95rem; 
+            transition: all 0.2s; 
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-start { background: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); }
+        .btn-start:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-stop { background: white; color: var(--danger); border: 1px solid var(--danger); margin-top: 12px; }
+        .btn-stop:hover { background: #fef2f2; }
+
+        /* Stats & Suggestion Box */
+        .stat-card {
+            background: #f9fafb;
+            border: 1px solid #f3f4f6;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        .stat-card h3 { margin: 0 0 8px 0; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-card .value { font-size: 1.75rem; font-weight: 700; color: #111827; display: flex; align-items: baseline; gap: 8px; }
+        .stat-badge { font-size: 0.8rem; padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 20px; font-weight: 600; }
+
+        .suggestion-box { 
+            background: var(--alert-bg); 
+            padding: 16px; 
+            border-radius: 12px; 
+            border-left: 4px solid var(--alert-border); 
+            margin-top: 20px;
+            box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.1);
+        }
+        .suggestion-box h3 { margin: 0 0 6px 0; color: var(--alert-text); font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
+        .suggestion-box p { margin: 0; font-size: 0.85rem; color: #78350f; line-height: 1.5; }
+
+        /* ====== MAIN CONTENT ====== */
+        .main-content { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 24px; 
+            gap: 24px; 
+            overflow-y: auto; 
+        }
+
+        /* Live View */
+        #live-view { display: flex; flex-direction: column; gap: 24px; height: 100%; }
+        
+        .video-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            grid-template-rows: repeat(2, 1fr); 
+            gap: 16px; 
+            flex: 2; 
+            min-height: 400px; 
+        }
+        
+        .cam-container { 
+            background: #111827; 
+            border-radius: 16px; 
+            position: relative; 
+            overflow: hidden; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .cam-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+        }
+        
+        /* Glassmorphism Label */
+        .cam-label { 
+            position: absolute; 
+            bottom: 16px; 
+            left: 16px; 
+            background: rgba(17, 24, 39, 0.6); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: white; 
+            padding: 6px 12px; 
+            border-radius: 8px; 
+            font-size: 0.85rem; 
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .cam-container.teacher { border: 3px solid var(--teacher-highlight); }
+        .cam-container.teacher .cam-label::before {
+            content: '⭐';
+            font-size: 0.8rem;
+        }
+
+        /* Bottom Panels */
+        .bottom-panel { display: flex; gap: 24px; height: 280px; }
+        .panel-card { 
+            background: var(--bg-panel); 
+            border-radius: 16px; 
+            padding: 20px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            border: 1px solid #e5e7eb;
+        }
+        .panel-card h3 { margin: 0 0 16px 0; font-size: 1.05rem; color: #111827; }
+
+        .report-log { 
+            flex: 1; 
+            overflow-y: auto; 
+            font-size: 0.85rem; 
+        }
+        .log-entry { padding: 10px 0; border-bottom: 1px solid #f3f4f6; display: flex; gap: 12px; }
+        .log-entry:last-child { border-bottom: none; }
+        .log-time { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+        .log-event { color: var(--primary); font-weight: 600; }
+        .log-text { color: var(--text-main); }
+
+        /* ====== POST-CLASS VIEW ====== */
+        #post-class-view { 
+            display: none; 
+            background: var(--bg-panel); 
+            border-radius: 16px; 
+            padding: 32px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); 
+            height: 100%; 
+            box-sizing: border-box; 
+            overflow-y: auto;
+        }
+        .header-title { font-size: 1.8rem; font-weight: 700; color: #111827; margin: 0 0 8px 0; }
+        .header-sub { color: var(--text-muted); margin: 0 0 32px 0; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 32px; }
+        .summary-card { background: #f9fafb; padding: 24px; border-radius: 12px; border: 1px solid #e5e7eb; }
+        .summary-card h4 { margin: 0 0 8px 0; color: var(--text-muted); font-weight: 500; }
+        .summary-card .big-num { font-size: 2.5rem; font-weight: 700; color: var(--primary); margin: 0; }
+
+        .insights-section { 
+            background: #fef2f2; 
+            border: 1px solid #fca5a5;
+            padding: 20px; 
+            border-radius: 12px; 
+            margin-top: 32px; 
+        }
+        .insights-section h3 { margin: 0 0 12px 0; color: #b91c1c; display: flex; align-items: center; gap: 8px; }
+        .insights-section ul { margin: 0; padding-left: 20px; color: #7f1d1d; line-height: 1.6; }
+        .insights-section li { margin-bottom: 8px; }
+
+        /* Custom Scrollbar for logs */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">A</div>
+            <h2>AffectiveClass</h2>
+        </div>
+        
+        <button class="btn-start" id="startBtn">Start Live Analysis</button>
+        <button class="btn-stop" id="stopBtn">End Session & Report</button>
+
+        <div class="suggestion-box" id="suggestionBox">
+            <h3>⚡ Smart Prompt</h3>
+            <p>Boredom spike detected (25%). Try initiating a quick Q&A to boost interaction.</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Current State</h3>
+            <div class="value">Lecture</div>
+            <div style="font-size: 0.85rem; color: #ec4899; margin-top: 4px; font-weight: 500;">Detecting Teacher Action...</div>
+        </div>
+
+        <div class="stat-card">
+            <h3>Group Engagement</h3>
+            <div class="value">68% <span class="stat-badge">Stable</span></div>
+            <div style="margin-top: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; color: #4b5563;">
+                    <span>Engaged</span><span>68%</span>
+                </div>
+                <div style="width: 100%; background: #e5e7eb; border-radius: 4px; height: 6px; margin-bottom: 10px;">
+                    <div style="width: 68%; background: var(--success); height: 100%; border-radius: 4px;"></div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; color: #4b5563;">
+                    <span>Bored / Confused</span><span>32%</span>
+                </div>
+                <div style="width: 100%; background: #e5e7eb; border-radius: 4px; height: 6px;">
+                    <div style="width: 32%; background: var(--alert-border); height: 100%; border-radius: 4px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="live-view">
+            <div class="video-grid">
+                <div class="cam-container teacher">
+                    <div style="color: #4b5563; font-weight: 500;">[ Teacher Stream ]</div>
+                    <div class="cam-label">Professor</div>
+                </div>
+                <div class="cam-container">
+                    <div style="color: #4b5563; font-weight: 500;">[ Student 1 Stream ]</div>
+                    <div class="cam-label"><span style="color: #fca5a5;">●</span> Bored</div>
+                </div>
+                <div class="cam-container">
+                    <div style="color: #4b5563; font-weight: 500;">[ Student 2 Stream ]</div>
+                    <div class="cam-label"><span style="color: #6ee7b7;">●</span> Engaged</div>
+                </div>
+                <div class="cam-container">
+                    <div style="color: #4b5563; font-weight: 500;">[ Student 3 Stream ]</div>
+                    <div class="cam-label"><span style="color: #6ee7b7;">●</span> Engaged</div>
+                </div>
+            </div>
+
+            <div class="bottom-panel">
+                <div class="panel-card" style="flex: 1.2;">
+                    <h3>Live Aggregated Engagement</h3>
+                    <div style="flex: 1; position: relative;">
+                        <canvas id="realtimeChart"></canvas>
+                    </div>
+                </div>
+                <div class="panel-card" style="flex: 0.8;">
+                    <h3>Contingency Log</h3>
+                    <div class="report-log">
+                        <div class="log-entry">
+                            <span class="log-time">10:00</span>
+                            <span class="log-text">Session started. Baseline established.</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">10:05</span>
+                            <span class="log-event">TEACHER EVENT: Asked Question</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">10:06</span>
+                            <span class="log-text">Engagement rose to 78% <span style="color: var(--success);">(+13%)</span></span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">10:12</span>
+                            <span class="log-event">TEACHER EVENT: Switched to Lecture</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time" style="color: var(--danger);">10:18</span>
+                            <span class="log-text" style="color: var(--danger);">Boredom threshold crossed. Suggestion sent.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="post-class-view">
+            <h2 class="header-title">Session Analysis Report</h2>
+            <p class="header-sub">Context-Aware Contingency Evaluation (Oct 24, 2024)</p>
+            
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h4>Average Engagement</h4>
+                    <p class="big-num">74%</p>
+                </div>
+                <div class="summary-card">
+                    <h4>Interactive Prompts</h4>
+                    <p class="big-num">8</p>
+                </div>
+                <div class="summary-card">
+                    <h4>Prompt Success Rate</h4>
+                    <p class="big-num" style="color: var(--success);">87%</p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 8px 0 0 0;">Resulted in engagement boost</p>
+                </div>
+            </div>
+
+            <div class="panel-card" style="height: 350px;">
+                <h3 style="margin-bottom: 5px;">Engagement Contingency Timeline</h3>
+                <div style="flex: 1; position: relative;">
+                    <canvas id="postClassChart"></canvas>
+                </div>
+            </div>
+
+            <div class="insights-section">
+                <h3>⚠️ Critical System Insights</h3>
+                <ul>
+                    <li><strong>10:18 AM (Lecture):</strong> Boredom spiked to 25%. System suggested: <em>Ask Question</em>. Teacher applied suggestion at 10:20 AM resulting in a +15% engagement recovery.</li>
+                    <li><strong>10:42 AM (Explanation):</strong> Confusion spiked to 18%. Recommendation for next class: Break down Concept B into smaller interactive chunks.</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Common Chart Defaults for cleaner look
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#6b7280';
+        Chart.defaults.scale.grid.color = '#f3f4f6';
+
+        // Setup Live Chart
+        const ctxLive = document.getElementById('realtimeChart').getContext('2d');
+        new Chart(ctxLive, {
+            type: 'line',
+            data: {
+                labels: ['-5m', '-4m', '-3m', '-2m', '-1m', 'Now'],
+                datasets: [{
+                    label: 'Class Engagement %',
+                    data: [80, 78, 75, 70, 65, 68],
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#4f46e5',
+                    pointRadius: 4
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                scales: { 
+                    y: { min: 0, max: 100, grid: { borderDash: [4, 4] } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Setup Post-Class Chart
+        const ctxPost = document.getElementById('postClassChart').getContext('2d');
+        new Chart(ctxPost, {
+            type: 'line',
+            data: {
+                labels: ['10:00', '10:10', '10:20', '10:30', '10:40', '10:50'],
+                datasets: [
+                    {
+                        label: 'Average Engagement',
+                        data: [65, 78, 62, 85, 55, 75],
+                        borderColor: '#10b981',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointBackgroundColor: '#10b981'
+                    },
+                    {
+                        label: 'Confusion / Boredom',
+                        data: [5, 5, 25, 2, 18, 5],
+                        borderColor: '#ef4444',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: { 
+                    y: { min: 0, max: 100, grid: { borderDash: [4, 4] } },
+                    x: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8 } }
+                }
+            }
+        });
+
+        // View Toggling Logic
+        const stopBtn = document.getElementById('stopBtn');
+        const startBtn = document.getElementById('startBtn');
+        const liveView = document.getElementById('live-view');
+        const postClassView = document.getElementById('post-class-view');
+
+        stopBtn.addEventListener('click', () => {
+            liveView.style.display = 'none';
+            postClassView.style.display = 'block';
+            startBtn.innerText = "Restart Live Session";
+        });
+
+        startBtn.addEventListener('click', () => {
+            liveView.style.display = 'flex';
+            postClassView.style.display = 'none';
+            startBtn.innerText = "Start Live Analysis";
+        });
+    </script>
+</body>
+</html>
